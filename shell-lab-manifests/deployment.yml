@@ -1,0 +1,21 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shell-lab
+  labels:
+    app: shell-lab
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: shell-lab
+  template:
+    metadata:
+      labels:
+        app: shell-lab
+    spec:
+      containers:
+      - name: shell-lab
+        image: ariefshaik007/ci-cd-shell-lab:replaceImageTag
+        ports:
+        - containerPort: 8080
