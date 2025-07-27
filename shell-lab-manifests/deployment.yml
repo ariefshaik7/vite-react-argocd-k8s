@@ -15,7 +15,7 @@ spec:
         app: shell-lab
     spec:
       containers:
-      - name: shell-lab
-        image: ariefshaik007/ci-cd-shell-lab:1
-        ports:
-        - containerPort: 8080
+        - name: shell-lab
+          image: ariefshaik007/ci-cd-shell-lab:1
+          ports:
+            - containerPort: 8080
