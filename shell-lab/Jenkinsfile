@@ -2,7 +2,7 @@ pipeline {
     agent {
         docker {
             // This image needs Node.js, Docker client, Git, yq, and SonarScanner CLI installed
-            image 'ariefshaik007/node-sonar-agent:latest' 
+            image 'ariefshaik007/node-ci-agent:latest' 
             args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
         }
     }
