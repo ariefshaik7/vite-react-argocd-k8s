@@ -1,7 +1,6 @@
 pipeline {
     agent {
         docker {
-            // This image needs Node.js, Docker client, Git, yq, and SonarScanner CLI installed
             image 'ariefshaik007/node-sonar-agent:latest' 
             args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
         }
@@ -14,25 +13,6 @@ pipeline {
             }
         }
 
-        // --- SonarQube Analysis Stage ---
-        stage('Static Code Analysis with SonarQube') {
-            environment {
-                SONAR_URL = "http://10.47.160.78:9000"
-            }
-            steps {
-                withCredentials([string(credentialsId: 'sonarqube', variable: 'SONAR_AUTH_TOKEN')]) {
-                    // Use the SonarScanner CLI for JavaScript projects
-                    sh '''
-                        cd shell-lab
-                        sonar-scanner \
-                            -Dsonar.projectKey=vite-react-app \
-                            -Dsonar.sources=. \
-                            -Dsonar.host.url=${SONAR_URL} \
-                            -Dsonar.login=${SONAR_AUTH_TOKEN}
-                    '''
-                }
-            }
-        }
 
         stage('Build and Push Docker Image') {
             environment {
