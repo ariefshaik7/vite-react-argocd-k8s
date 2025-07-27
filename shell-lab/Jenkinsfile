@@ -32,7 +32,7 @@ pipeline {
 
         stage('Update Deployment File') {
             environment {
-                GIT_REPO_NAME = "vite-react-sonar-argocd-k8s"
+                GIT_REPO_NAME = "vite-react-argocd-k8s"
                 GIT_USER_NAME = "ariefshaik7"
                 IMAGE_NAME = "ariefshaik007/ci-cd-shell-lab"
                 IMAGE_TAG = "${BUILD_NUMBER}"
