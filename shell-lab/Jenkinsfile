@@ -1,0 +1,66 @@
+pipeline {
+    agent {
+        docker {
+            // This image needs Node.js, Docker client, Git, and yq installed
+            image 'ariefshaik007/node-ci-agent:latest' 
+            args '--user root -v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
+
+    stages {
+        stage('Install Dependencies & Build') {
+            steps {
+                sh 'cd shell-lab && npm install && npm run build'
+            }
+        }
+
+        stage('Lint Check') {
+            steps {
+                sh 'cd shell-lab && npm run lint'
+            }
+        }
+
+        stage('Build and Push Docker Image') {
+            environment {
+                DOCKERHUB_CREDENTIALS = credentials('dockerhub')
+                IMAGE_NAME = "ariefshaik007/ci-cd-shell-lab"
+                IMAGE_TAG = "${BUILD_NUMBER}"
+            }
+            steps {
+                sh '''
+                  cd shell-lab
+                  docker build -t $IMAGE_NAME:$IMAGE_TAG .
+                  echo $DOCKERHUB_CREDENTIALS_PSW | docker login -u $DOCKERHUB_CREDENTIALS_USR --password-stdin
+                  docker push $IMAGE_NAME:$IMAGE_TAG
+                '''
+            }
+        }
+
+        stage('Update Deployment File') {
+            environment {
+                GIT_REPO_NAME = "vite-react-sonar-argocd-k8s"
+                GIT_USER_NAME = "ariefshaik7"
+                IMAGE_NAME = "ariefshaik007/ci-cd-shell-lab"
+                IMAGE_TAG = "${BUILD_NUMBER}"
+            }
+            steps {
+                withCredentials([string(credentialsId: 'github', variable: 'GITHUB_TOKEN')]) {
+                    sh '''
+                        rm -rf ${GIT_REPO_NAME}
+                        git clone https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME}.git
+                        cd ${GIT_REPO_NAME}
+                        git config user.email "ariefshaik001@gmail.com"
+                        git config user.name "arief"
+                        
+                        # Use yq to update the deployment file with the correct image and tag
+                        yq -i ".spec.template.spec.containers[0].image = \\"${IMAGE_NAME}:${IMAGE_TAG}\\"" shell-lab-manifests/deployment.yml
+
+                        git add shell-lab-manifests/deployment.yml
+                        git commit -m "Update deployment image to version ${IMAGE_TAG}"
+                        git push https://${GITHUB_TOKEN}@github.com/${GIT_USER_NAME}/${GIT_REPO_NAME} HEAD:master
+                    '''
+                }
+            }
+        }
+    }
+}
